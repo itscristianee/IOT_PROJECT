@@ -3,29 +3,112 @@
 <head>
   <meta charset="UTF-8">
   <title>Dashboard IoT - Incêndios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    .chart-container {
+      max-width: 600px;
+      margin: auto;
+    }
+  </style>
 </head>
-<body class="container mt-5">
-  <h1>🔥 Dashboard de Monitorização</h1>
-  <p><strong>Temperatura:</strong> {{ estado.temperatura }} °C</p>
-  <p><strong>Humidade:</strong> {{ estado.humidade }} %</p>
-  <p><strong>Chama detectada:</strong> {{ 'Sim' if estado.chama else 'Não' }}</p>
-  <p><strong>Estado do sistema:</strong> {{ '🚨 ALERTA' if estado.alerta else '✅ Seguro' }}</p>
+<body>
+  <h1 class="mb-4">🔥 Dashboard de Monitorização</h1>
 
-  <form action="/comando" method="post" onsubmit="enviarComando(event)">
-    <button type="submit" class="btn btn-danger">Desligar LED/Buzzer</button>
+  <div class="mb-4">
+    <p><strong>Temperatura:</strong> {{ estado.temperatura if estado.temperatura is not none else 'N/D' }} °C</p>
+    <p><strong>Humidade:</strong> {{ estado.humidade if estado.humidade is not none else 'N/D' }} %</p>
+    <p><strong>Chama detectada:</strong> {{ 'Sim' if estado.chama else 'Não' }}</p>
+    <p>
+      <strong>Estado do sistema:</strong>
+      {% if estado.alerta %}
+        <span class="text-danger fw-bold">🚨 ALERTA</span>
+      {% else %}
+        <span class="text-success fw-bold">✅ Seguro</span>
+      {% endif %}
+    </p>
+  </div>
+
+  <form id="comandoForm" onsubmit="enviarComando(event)">
+    <button
+      type="submit"
+      class="btn {% if estado.alerta %}btn-danger{% else %}btn-secondary{% endif %}"
+      {% if not estado.alerta %}disabled{% endif %}>
+      Desligar LED/Buzzer
+    </button>
   </form>
+
+  <hr class="my-5">
+
+  <div class="chart-container mb-5">
+    <h4>Gráfico - Temperatura (°C)</h4>
+    <canvas id="chartTemperatura"></canvas>
+  </div>
+
+  <div class="chart-container mb-5">
+    <h4>Gráfico - Humidade (%)</h4>
+    <canvas id="chartHumidade"></canvas>
+  </div>
+
+  <div class="chart-container mb-5">
+    <h4>Gráfico - Deteção de Chama</h4>
+    <canvas id="chartChama"></canvas>
+  </div>
 
   <script>
     async function enviarComando(e) {
       e.preventDefault();
       await fetch("/comando", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({led: false, buzzer: false})
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ led: false, buzzer: false })
       });
       location.reload();
     }
+
+    // ⚠️ Simula dados históricos - Substitua por dados reais da API Flask se desejar
+    const dadosHistoricos = {
+      temperatura: [28, 29, 30, 31, 29, 28, {{ estado.temperatura|default(28) }}],
+      humidade: [45, 47, 50, 48, 49, 46, {{ estado.humidade|default(50) }}],
+      chama: [0, 0, 0, 1, 1, 0, {{ 1 if estado.chama else 0 }}]
+    };
+
+    const labels = ["-6", "-5", "-4", "-3", "-2", "-1", "Atual"];
+
+    const criarGrafico = (id, label, dados, cor) => {
+      new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: label,
+            data: dados,
+            borderColor: cor,
+            backgroundColor: cor + '33',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    };
+
+    criarGrafico('chartTemperatura', 'Temperatura (°C)', dadosHistoricos.temperatura, 'red');
+    criarGrafico('chartHumidade', 'Humidade (%)', dadosHistoricos.humidade, 'blue');
+    criarGrafico('chartChama', 'Deteção de Chama', dadosHistoricos.chama, 'orange');
   </script>
 </body>
 </html>
