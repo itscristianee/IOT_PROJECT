@@ -36,13 +36,11 @@
   </div>
 
   <form id="comandoForm" onsubmit="enviarComando(event)">
-    <button
-      type="submit"
-      class="btn {% if estado.alerta %}btn-danger{% else %}btn-secondary{% endif %}"
-      {% if not estado.alerta %}disabled{% endif %}>
-      Desligar LED/Buzzer
-    </button>
-  </form>
+  <button id="botaoDesligar" type="submit" class="btn btn-danger">
+    Desligar LED/Buzzer
+  </button>
+</form>
+
 
   <hr class="my-5">
 
@@ -63,14 +61,35 @@
 
   <script>
   async function enviarComando(e) {
-    e.preventDefault();
-    await fetch("/comando", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ led: false, buzzer: false })
-    });
-    location.reload();
+  e.preventDefault();
+  await fetch("/comando", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ led: false, buzzer: false })
+  });
+
+  // Atualiza visual do botão
+  atualizarEstadoBotao();
+}
+
+async function atualizarEstadoBotao() {
+  const res = await fetch("/estado");
+  const estado = await res.json();
+
+  const botao = document.getElementById("botaoDesligar");
+
+  if (!estado.led && !estado.buzzer) {
+    botao.textContent = "Sistema Desligado";
+    botao.className = "btn btn-secondary";
+    botao.disabled = true;
+  } else {
+    botao.textContent = "Desligar LED/Buzzer";
+    botao.className = "btn btn-danger";
+    botao.disabled = false;
   }
+}
+
+
 
   // ✅ Simula dados históricos - com fallback seguro em JS
   const dadosHistoricos = {
