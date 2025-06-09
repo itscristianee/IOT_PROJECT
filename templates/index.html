@@ -74,7 +74,8 @@
 
     async function atualizarEstadoBotao() {
       try {
-        const res = await fetch("/estado");
+        const res = await fetch("http://192.168.1.200:5001/estado");
+
         const estado = await res.json();
         const botao = document.getElementById("botaoDesligar");
 
