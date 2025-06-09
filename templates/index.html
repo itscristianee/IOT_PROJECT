@@ -92,21 +92,26 @@ async function atualizarEstadoBotao() {
   // Atualiza visual do botão
   atualizarEstadoBotao();
 
+async function carregarHistorico() {
+  try {
+    const res = await fetch("/historico");
+    const historico = await res.json();
 
+    const dadosTemperatura = historico.map(d => d.temperatura ?? null);
+    const dadosHumidade = historico.map(d => d.humidade ?? null);
+    const dadosChama = historico.map(d => d.chama ? 1 : 0);
 
+    const labels = historico.map((_, i) => `${i - historico.length + 1}`);
 
+    criarGrafico('chartTemperatura', 'Temperatura (°C)', dadosTemperatura, 'red', labels);
+    criarGrafico('chartHumidade', 'Humidade (%)', dadosHumidade, 'blue', labels);
+    criarGrafico('chartChama', 'Deteção de Chama', dadosChama, 'orange', labels);
+  } catch (err) {
+    console.error("Erro ao carregar histórico:", err);
+  }
+}
 
-  // ✅ Simula dados históricos - com fallback seguro em JS
-  const dadosHistoricos = {
-  temperatura: [{{ estado.temperatura if estado.temperatura is not none else 'null' }}],
-  humidade: [{{ estado.humidade if estado.humidade is not none else 'null' }}],
-  chama: [{{ 1 if estado.chama else 0 }}]
-};
-
-
-  const labels = ["-6", "-5", "-4", "-3", "-2", "-1", "Atual"];
-
-  const criarGrafico = (id, label, dados, cor) => {
+function criarGrafico(id, label, dados, cor, labels) {
   new Chart(document.getElementById(id), {
     type: 'line',
     data: {
@@ -118,24 +123,21 @@ async function atualizarEstadoBotao() {
         backgroundColor: cor + '33',
         fill: true,
         tension: 0.3,
-        spanGaps: true // 👈 importante
+        spanGaps: true
       }]
     },
     options: {
       responsive: true,
       scales: {
         y: {
-          beginAtZero: true
+          beginAtZero: false
         }
       }
     }
   });
-};
+}
 
-
-  criarGrafico('chartTemperatura', 'Temperatura (°C)', dadosHistoricos.temperatura, 'red');
-  criarGrafico('chartHumidade', 'Humidade (%)', dadosHistoricos.humidade, 'blue');
-  criarGrafico('chartChama', 'Deteção de Chama', dadosHistoricos.chama, 'orange');
+carregarHistorico();
 </script>
 
 </body>
