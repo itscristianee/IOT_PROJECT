@@ -65,7 +65,12 @@
   await fetch("/comando", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ led: false, buzzer: false })
+    body: body: JSON.stringify({
+  led: false,
+  buzzer: false,
+  modo_manual: true
+})
+)
   });
 
   // Atualiza visual do botão
