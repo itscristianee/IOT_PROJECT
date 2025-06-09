@@ -36,9 +36,7 @@
   </div>
 
   <form id="comandoForm" onsubmit="enviarComando(event)">
-  <button id="botaoDesligar" type="submit" class="btn btn-danger">
-    Desligar LED/Buzzer
-  </button>
+  <button type="submit" class="btn btn-danger">Desligar LED/Buzzer</button>
 </form>
 
 
@@ -61,17 +59,18 @@
 
   <script>
   async function enviarComando(e) {
-  e.preventDefault();
-  await fetch("/comando", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body: JSON.stringify({
-  led: false,
-  buzzer: false,
-  modo_manual: true
-})
-)
-  });
+    e.preventDefault();
+    await fetch("/comando", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        led: false,
+        buzzer: false,
+        modo_manual: true  // ESSENCIAL para manter desligado
+      })
+    });
+    location.reload(); // Atualiza a página para refletir o novo estado
+  }
 
   // Atualiza visual do botão
   atualizarEstadoBotao();
