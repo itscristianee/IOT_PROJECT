@@ -58,79 +58,85 @@
   </div>
 
   <script>
-    async function enviarComando(e) {
-      e.preventDefault();
-      await fetch("/comando", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          led: false,
-          buzzer: false,
-          modo_manual: true
-        })
-      });
-      location.reload(); // Atualiza a página
-    }
+  async function enviarComando(e) {
+    e.preventDefault();
+    await fetch("/comando", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        led: false,
+        buzzer: false,
+        modo_manual: true  // ESSENCIAL para manter desligado
+      })
+    });
+    location.reload(); // Atualiza a página para refletir o novo estado
+  }
 
-    async function atualizarEstadoBotao() {
-      try {
-        const res = await fetch("/estado");
-        const estado = await res.json();
-        const botao = document.getElementById("botaoDesligar");
+async function atualizarEstadoBotao() {
+  const res = await fetch("/estado");
+  const estado = await res.json();
 
-        if (!estado.led && !estado.buzzer) {
-          botao.textContent = "Sistema Desligado";
-          botao.className = "btn btn-secondary";
-          botao.disabled = true;
-        } else {
-          botao.textContent = "Desligar LED/Buzzer";
-          botao.className = "btn btn-danger";
-          botao.disabled = false;
+  const botao = document.getElementById("botaoDesligar");
+
+  if (!estado.led && !estado.buzzer) {
+    botao.textContent = "Sistema Desligado";
+    botao.className = "btn btn-secondary";
+    botao.disabled = true;
+  } else {
+    botao.textContent = "Desligar LED/Buzzer";
+    botao.className = "btn btn-danger";
+    botao.disabled = false;
+  }
+}
+
+  // Atualiza visual do botão
+  atualizarEstadoBotao();
+
+
+
+
+
+  // ✅ Simula dados históricos - com fallback seguro em JS
+  const dadosHistoricos = {
+  temperatura: [{{ estado.temperatura if estado.temperatura is not none else 'null' }}],
+  humidade: [{{ estado.humidade if estado.humidade is not none else 'null' }}],
+  chama: [{{ 1 if estado.chama else 0 }}]
+};
+
+
+  const labels = ["-6", "-5", "-4", "-3", "-2", "-1", "Atual"];
+
+  const criarGrafico = (id, label, dados, cor) => {
+  new Chart(document.getElementById(id), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: label,
+        data: dados,
+        borderColor: cor,
+        backgroundColor: cor + '33',
+        fill: true,
+        tension: 0.3,
+        spanGaps: true // 👈 importante
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
         }
-      } catch (err) {
-        console.error("Erro ao obter estado:", err);
       }
     }
+  });
+};
 
-    atualizarEstadoBotao();
 
-    const dadosHistoricos = {
-      temperatura: [{{ estado.temperatura if estado.temperatura is not none else 'null' }}],
-      humidade: [{{ estado.humidade if estado.humidade is not none else 'null' }}],
-      chama: [{{ 1 if estado.chama else 0 }}]
-    };
+  criarGrafico('chartTemperatura', 'Temperatura (°C)', dadosHistoricos.temperatura, 'red');
+  criarGrafico('chartHumidade', 'Humidade (%)', dadosHistoricos.humidade, 'blue');
+  criarGrafico('chartChama', 'Deteção de Chama', dadosHistoricos.chama, 'orange');
+</script>
 
-    const labels = ["-6", "-5", "-4", "-3", "-2", "-1", "Atual"];
-
-    const criarGrafico = (id, label, dados, cor) => {
-      new Chart(document.getElementById(id), {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: label,
-            data: dados,
-            borderColor: cor,
-            backgroundColor: cor + '33',
-            fill: true,
-            tension: 0.3,
-            spanGaps: true
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    };
-
-    criarGrafico('chartTemperatura', 'Temperatura (°C)', dadosHistoricos.temperatura, 'red');
-    criarGrafico('chartHumidade', 'Humidade (%)', dadosHistoricos.humidade, 'blue');
-    criarGrafico('chartChama', 'Deteção de Chama', dadosHistoricos.chama, 'orange');
-  </script>
 </body>
 </html>
