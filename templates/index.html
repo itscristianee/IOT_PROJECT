@@ -74,37 +74,40 @@
 
   // ✅ Simula dados históricos - com fallback seguro em JS
   const dadosHistoricos = {
-    temperatura: [28, 29, 30, 31, 29, 28, {{ estado.temperatura if estado.temperatura is not none else 'null' }}],
-    humidade: [45, 47, 50, 48, 49, 46, {{ estado.humidade if estado.humidade is not none else 'null' }}],
-    chama: [0, 0, 0, 1, 1, 0, {{ 1 if estado.chama else 0 }}]
-  };
+  temperatura: [{{ estado.temperatura if estado.temperatura is not none else 'null' }}],
+  humidade: [{{ estado.humidade if estado.humidade is not none else 'null' }}],
+  chama: [{{ 1 if estado.chama else 0 }}]
+};
+
 
   const labels = ["-6", "-5", "-4", "-3", "-2", "-1", "Atual"];
 
   const criarGrafico = (id, label, dados, cor) => {
-    new Chart(document.getElementById(id), {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: label,
-          data: dados,
-          borderColor: cor,
-          backgroundColor: cor + '33',
-          fill: true,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+  new Chart(document.getElementById(id), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: label,
+        data: dados,
+        borderColor: cor,
+        backgroundColor: cor + '33',
+        fill: true,
+        tension: 0.3,
+        spanGaps: true // 👈 importante
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
         }
       }
-    });
-  };
+    }
+  });
+};
+
 
   criarGrafico('chartTemperatura', 'Temperatura (°C)', dadosHistoricos.temperatura, 'red');
   criarGrafico('chartHumidade', 'Humidade (%)', dadosHistoricos.humidade, 'blue');
