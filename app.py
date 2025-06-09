@@ -11,7 +11,7 @@ estado = {
     "buzzer": False
 }
 
-API_KEY = "123456"  # <- Troca por uma chave segura
+API_KEY = "123456"
 
 @app.route("/", methods=["GET"])
 def dashboard():
